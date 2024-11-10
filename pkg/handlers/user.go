@@ -2,11 +2,17 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github/devAshu12/learning_platform_GO_backend/internal/auth"
+	"github/devAshu12/learning_platform_GO_backend/pkg/db"
+	"github/devAshu12/learning_platform_GO_backend/pkg/models"
 	"github/devAshu12/learning_platform_GO_backend/pkg/types"
 	"net/http"
 	"sync"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 var (
@@ -60,6 +66,7 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&progress)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	queueMutex.Lock()
@@ -68,4 +75,89 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 	queueMutex.Unlock()
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	var registerReq types.UserRegisterReq
+	err := json.NewDecoder(r.Body).Decode(&registerReq)
+	if err != nil {
+		http.Error(w, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	// check if email already exist
+	var existingUser models.User
+	if err := db.DB.Where("email = ?", registerReq.Email).First(&existingUser).Error; err == nil {
+		http.Error(w, "Email already in use", http.StatusConflict)
+		return
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// encrypt password
+	hashedPassword, err := auth.HashPassword(registerReq.Password)
+	if err != nil {
+		http.Error(w, "Password encryption failed", http.StatusInternalServerError)
+		return
+	}
+
+	var role models.RoleType
+	switch registerReq.Role {
+	case "super_admin_dev":
+		role = models.SuperAdminDev
+	case "super_admin":
+		role = models.SuperAdmin
+	case "faculty":
+		role = models.Faculty
+	case "student":
+		role = models.Student
+	default:
+		http.Error(w, "Invalid role", http.StatusBadRequest)
+		return
+	}
+
+	// create user
+	user := models.User{
+		FirstName:  registerReq.FirstName,
+		SecondName: registerReq.SecondName,
+		Email:      registerReq.Email,
+		Password:   hashedPassword,
+		Role:       role,
+	}
+
+	if err := db.DB.Create(&user).Error; err != nil {
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	// create JWT
+	access_token, refresh_token, err := auth.GenerateToken(user.ID)
+	if err != nil {
+		http.Error(w, "Failed to create JWT", http.StatusInternalServerError)
+		return
+	}
+
+	// set cookies
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    access_token,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refresh_token,
+		Expires:  time.Now().Add(14 * 24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+	})
+
+	// send response
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User registered successfully",
+	})
 }
