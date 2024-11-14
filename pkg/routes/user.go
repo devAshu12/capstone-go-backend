@@ -14,4 +14,6 @@ func UserRouters(router *mux.Router) {
 	// todoRouter.Use(middlewares.JWTMiddleware)
 
 	userRouter.HandleFunc("/track-progress", handlers.UpdateProgress).Methods("POST")
+	userRouter.HandleFunc("/register", handlers.Register).Methods("POST")
+	userRouter.HandleFunc("/login", handlers.Login).Methods("POST")
 }

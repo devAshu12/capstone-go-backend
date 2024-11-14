@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github/devAshu12/learning_platform_GO_backend/pkg/models"
 	"log"
 	"os"
 
@@ -30,6 +31,17 @@ func InitDB() {
 	DB, err = gorm.Open(postgres.Open(db_url), &gorm.Config{})
 	if err != nil {
 		fmt.Println("Failed to connect to Database")
+	}
+
+	err = DB.AutoMigrate(
+		&models.User{},
+		&models.Course{},
+		&models.Module{},
+		&models.Video{},
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
 	log.Print("Database connected successfully")

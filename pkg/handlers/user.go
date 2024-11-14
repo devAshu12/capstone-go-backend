@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github/devAshu12/learning_platform_GO_backend/internal/auth"
+	"github/devAshu12/learning_platform_GO_backend/internal/utils"
+	"github/devAshu12/learning_platform_GO_backend/pkg/config"
 	"github/devAshu12/learning_platform_GO_backend/pkg/db"
 	"github/devAshu12/learning_platform_GO_backend/pkg/models"
 	"github/devAshu12/learning_platform_GO_backend/pkg/types"
@@ -81,24 +83,34 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	var registerReq types.UserRegisterReq
 	err := json.NewDecoder(r.Body).Decode(&registerReq)
 	if err != nil {
-		http.Error(w, "Invalid request format", http.StatusBadRequest)
+		appErr := types.NewAppError(http.StatusBadRequest, "Invalid request format", err)
+		utils.RespondWithError(w, appErr)
+		return
+	}
+
+	if err := config.ValidateRequest(registerReq); err != nil {
+		appErr := types.NewAppError(http.StatusBadRequest, fmt.Sprintf("Validation failed: %v", err), err)
+		utils.RespondWithError(w, appErr)
 		return
 	}
 
 	// check if email already exist
 	var existingUser models.User
 	if err := db.DB.Where("email = ?", registerReq.Email).First(&existingUser).Error; err == nil {
-		http.Error(w, "Email already in use", http.StatusConflict)
+		appErr := types.NewAppError(http.StatusConflict, "Email already in use", err)
+		utils.RespondWithError(w, appErr)
 		return
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		appErr := types.NewAppError(http.StatusInternalServerError, "Database error", err)
+		utils.RespondWithError(w, appErr)
 		return
 	}
 
 	// encrypt password
 	hashedPassword, err := auth.HashPassword(registerReq.Password)
 	if err != nil {
-		http.Error(w, "Password encryption failed", http.StatusInternalServerError)
+		appErr := types.NewAppError(http.StatusInternalServerError, "Password encryption failed", err)
+		utils.RespondWithError(w, appErr)
 		return
 	}
 
@@ -113,7 +125,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	case "student":
 		role = models.Student
 	default:
-		http.Error(w, "Invalid role", http.StatusBadRequest)
+		appErr := types.NewAppError(http.StatusBadRequest, "Invalid role", err)
+		utils.RespondWithError(w, appErr)
 		return
 	}
 
@@ -127,14 +140,17 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		appErr := types.NewAppError(http.StatusInternalServerError, "Failed to create user", err)
+		utils.RespondWithError(w, appErr)
 		return
 	}
 
 	// create JWT
 	access_token, refresh_token, err := auth.GenerateToken(user.ID)
 	if err != nil {
-		http.Error(w, "Failed to create JWT", http.StatusInternalServerError)
+		fmt.Println(err)
+		appErr := types.NewAppError(http.StatusInternalServerError, "Failed to create JWT", err)
+		utils.RespondWithError(w, appErr)
 		return
 	}
 
@@ -160,4 +176,68 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "User registered successfully",
 	})
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+
+	var userLoginReq types.UserLoginReq
+
+	err := json.NewDecoder(r.Body).Decode(&userLoginReq)
+	if err != nil {
+		appErr := types.NewAppError(http.StatusBadRequest, "Invalid request format", err)
+		utils.RespondWithError(w, appErr)
+		return
+	}
+
+	if err := config.ValidateRequest(userLoginReq); err != nil {
+		appErr := types.NewAppError(http.StatusBadRequest, fmt.Sprintf("Validation failed: %v", err), err)
+		utils.RespondWithError(w, appErr)
+		return
+	}
+
+	var isUserExist models.User
+	if err := db.DB.Where("email = ?", userLoginReq.Email).First(&isUserExist).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		appErr := types.NewAppError(http.StatusNotFound, "Invalid user email", err)
+		utils.RespondWithError(w, appErr)
+		return
+	}
+
+	isMatchErr := auth.CheckPassword(isUserExist.Password, userLoginReq.Password)
+	if isMatchErr != nil {
+		appError := types.NewAppError(http.StatusUnauthorized, "Invalid password", err)
+		utils.RespondWithError(w, appError)
+		return
+	}
+
+	access_token, refresh_token, err := auth.GenerateToken(isUserExist.ID)
+	if err != nil {
+		fmt.Println(err)
+		appErr := types.NewAppError(http.StatusInternalServerError, "Failed to create JWT", err)
+		utils.RespondWithError(w, appErr)
+		return
+	}
+
+	// set cookies
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    access_token,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refresh_token,
+		Expires:  time.Now().Add(14 * 24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+	})
+
+	// send response
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User logged in successfully",
+	})
+
 }

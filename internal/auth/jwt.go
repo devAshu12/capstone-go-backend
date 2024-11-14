@@ -11,19 +11,21 @@ import (
 var jwtAccessKey = []byte(os.Getenv("JWT_SECRET"))
 var jwtRefreshKey = []byte(os.Getenv("JWT_SECRET_REFRESH"))
 
+// GenerateToken creates an access and refresh token for a user with the specified userID.
 func GenerateToken(userID string) (string, string, error) {
-	access_claims := &jwt.RegisteredClaims{
+	accessClaims := &jwt.RegisteredClaims{
 		Subject:   userID,
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 	}
 
-	refresh_claims := &jwt.RegisteredClaims{
+	refreshClaims := &jwt.RegisteredClaims{
 		Subject:   userID,
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(12 * 24 * time.Hour)),
 	}
 
-	access_token, err1 := jwt.NewWithClaims(jwt.SigningMethodES256, access_claims).SignedString(jwtAccessKey)
-	refresh_token, err2 := jwt.NewWithClaims(jwt.SigningMethodES256, refresh_claims).SignedString(jwtRefreshKey)
+	// Use HS256 for HMAC-based symmetric signing
+	accessToken, err1 := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims).SignedString(jwtAccessKey)
+	refreshToken, err2 := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString(jwtRefreshKey)
 
 	if err1 != nil {
 		return "", "", err1
@@ -32,16 +34,26 @@ func GenerateToken(userID string) (string, string, error) {
 		return "", "", err2
 	}
 
-	return access_token, refresh_token, nil
+	return accessToken, refreshToken, nil
 }
 
+// ValidateAccessToken validates the provided token string as either an access or refresh token.
 func ValidateAccessToken(tokenString string, isAccessToken bool) (*jwt.RegisteredClaims, error) {
+	// Set the appropriate key based on the token type
+	var signingKey []byte
+	if isAccessToken {
+		signingKey = jwtAccessKey
+	} else {
+		signingKey = jwtRefreshKey
+	}
 
+	// Parse and validate the token with claims
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if isAccessToken {
-			return jwtAccessKey, nil
+		// Verify the signing method is HS256
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
 		}
-		return jwtRefreshKey, nil
+		return signingKey, nil
 	})
 
 	if err != nil {

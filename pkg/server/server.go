@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github/devAshu12/learning_platform_GO_backend/internal/middlewares"
 	"github/devAshu12/learning_platform_GO_backend/pkg/routes"
 	"net/http"
 
@@ -13,6 +14,7 @@ type Server struct {
 
 func NewServer() *Server {
 	mux := mux.NewRouter()
+	mux.Use(middlewares.ErrorHandlingMiddleware)
 	routes.RegisterRoutes(mux)
 	return &Server{
 		Server: http.Server{
