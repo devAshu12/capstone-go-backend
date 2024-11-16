@@ -6,7 +6,6 @@ import (
 )
 
 type Course struct {
-	gorm.Model
 	ID    string  `gorm:"type:uuid; primaryKey" json:"course_id"`
 	Title string  `gorm:"type:string; not null" json:"title"`
 	Price float64 `gorm:"type:decimal(10,2); not null" json:"price"`

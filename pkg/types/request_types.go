@@ -20,3 +20,8 @@ type UserLoginReq struct {
 	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required,min=8"`
 }
+
+type CreateCourseReq struct {
+	Title string  `json:"title" validate:"required"`
+	Price float64 `json:"price" validate:"required"`
+}

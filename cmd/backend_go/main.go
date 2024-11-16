@@ -35,7 +35,7 @@ func main() {
 		close(handlers.Quit)
 
 		// Wait briefly to allow for the final queue flush before shutdown
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 
 		// Gracefully shut down the HTTP server
 		if err := s.Shutdown(context.Background()); err != nil {

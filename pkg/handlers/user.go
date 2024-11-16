@@ -161,6 +161,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
 		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	http.SetCookie(w, &http.Cookie{
@@ -169,6 +171,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		HttpOnly: true,
 		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	// send response
@@ -222,16 +226,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Name:     "access_token",
 		Value:    access_token,
 		Expires:  time.Now().Add(24 * time.Hour),
+		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "refresh_token",
 		Value:    refresh_token,
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
+		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	// send response
