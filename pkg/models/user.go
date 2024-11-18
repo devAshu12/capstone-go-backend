@@ -17,8 +17,7 @@ const (
 )
 
 type User struct {
-	gorm.Model
-	ID         string   `gorm:"type:uuid;primaryKey" json:"user_id"`
+	ID         string   `gorm:"type:uuid;primaryKey" json:"id"`
 	FirstName  string   `gorm:"type:string;not null" json:"first_name"`
 	SecondName string   `gorm:"type:string;not null" json:"second_name"`
 	Email      string   `gorm:"type:string;not null;unique" json:"email"`

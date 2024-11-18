@@ -6,7 +6,7 @@ import (
 )
 
 type Course struct {
-	ID    string  `gorm:"type:uuid; primaryKey" json:"course_id"`
+	ID    string  `gorm:"type:uuid; primaryKey" json:"id"`
 	Title string  `gorm:"type:string; not null" json:"title"`
 	Price float64 `gorm:"type:decimal(10,2); not null" json:"price"`
 

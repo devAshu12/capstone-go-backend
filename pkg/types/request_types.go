@@ -25,3 +25,14 @@ type CreateCourseReq struct {
 	Title string  `json:"title" validate:"required"`
 	Price float64 `json:"price" validate:"required"`
 }
+
+type CreateModuleReq struct {
+	Title    string `json:"title" validate:"required"`
+	CourseID string `json:"course_id" validate:"required"`
+}
+
+// type CreateVideoReq struct {
+// 	Title    string `form:"title" validate:"required"`
+// 	ModuleID string `form:"module_id" validate:"required,uuid"`
+// 	File     []byte `form:"file" validate:"required"` // File will be read from multipart form
+// }

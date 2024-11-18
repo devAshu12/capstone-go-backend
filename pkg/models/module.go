@@ -6,8 +6,7 @@ import (
 )
 
 type Module struct {
-	gorm.Model
-	ID               string `gorm:"type:uuid;primaryKey" json:"module_id"`
+	ID               string `gorm:"type:uuid;primaryKey" json:"id"`
 	Title            string `gorm:"type:string;not null" json:"title"`
 	TotalVideos      int    `gorm:"default:0" json:"total_videos"`
 	TotalHours       int    `gorm:"default:0" json:"total_hours"`

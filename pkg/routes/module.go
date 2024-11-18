@@ -7,11 +7,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CourseRoute(router *mux.Router) {
+func ModuleRoute(router *mux.Router) {
 
-	courseRouter := router.PathPrefix("/course").Subrouter()
+	courseRouter := router.PathPrefix("/module").Subrouter()
 
-	courseRouter.HandleFunc("", handlers.GetCourses).Methods("GET")
 	courseRouter.Use(middlewares.AuthMiddleware)
-	courseRouter.HandleFunc("", handlers.CreateCourse).Methods("POST")
+	courseRouter.HandleFunc("", handlers.CreateModule).Methods("POST")
+	courseRouter.HandleFunc("", handlers.GetModules).Methods("GET")
 }
