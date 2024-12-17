@@ -1,5 +1,9 @@
 package types
 
+import (
+	"time"
+)
+
 type VideoProgress struct {
 	UserID     int     `json:"user_id"`
 	VideoID    int     `json:"video_id"`
@@ -29,6 +33,51 @@ type CreateCourseReq struct {
 type CreateModuleReq struct {
 	Title    string `json:"title" validate:"required"`
 	CourseID string `json:"course_id" validate:"required"`
+}
+
+type CreateAssignmentReq struct {
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	ModuleID    string    `json:"module_id"`
+	CourseID    string    `json:"course_id"`
+	Deadline    time.Time `json:"deadline"`
+}
+
+type UpdateAssignmentReq struct {
+	ID          string    `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	ModuleID    string    `json:"module_id"`
+	CourseID    string    `json:"course_id"`
+	Deadline    time.Time `json:"deadline"`
+}
+
+type CreateQuizzReq struct {
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"due_date"`
+	CourseID    string    `json:"course_id"`
+	ModuleID    *string   `json:"module_id"`
+	IsFinal     bool      `json:"is_final"`
+}
+
+type UpdateQuizReq struct {
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"due_date"`
+	IsFinal     bool      `json:"is_final"`
+}
+
+type CreateQuestionReq struct {
+	QuizID  string        `json:"quiz_id"`
+	Text    string        `json:"text"`
+	Points  int           `json:"points"`
+	Options []OptionInput `json:"options"`
+}
+
+type OptionInput struct {
+	Text      string `json:"text"`
+	IsCorrect bool   `json:"is_correct"`
 }
 
 // type CreateVideoReq struct {

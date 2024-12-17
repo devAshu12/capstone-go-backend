@@ -23,7 +23,11 @@ type Course struct {
 	Faculty User `gorm:"foreignKey:UserRefer;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"faculty"`
 
 	//one course has many modules
-	Modules []Module `gorm:"foreignKey:CourseID" json:"modules"` // Relationship to Modules
+	Modules     []Module     `gorm:"foreignKey:CourseID" json:"modules"`         // Relationship to Modules
+	Assignments []Assignment `gorm:"foreignKey:CourseID" json:"assignments"`     // Relationship to Assignments
+	Quizzes     []Quiz       `gorm:"foreignKey:CourseID" json:"quizzes"`         // Relationship to Quizzes
+	Videos      []Video      `gorm:"foreignKey:CourseID" json:"videos"`          // Relationship to Videos
+	Students    []User       `gorm:"many2many:course_students;" json:"students"` // Relationship to Students
 }
 
 func (c *Course) BeforeCreate(tx *gorm.DB) (err error) {

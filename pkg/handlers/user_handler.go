@@ -177,8 +177,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	// send response
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "User registered successfully",
+		"success": true,
 	})
 }
 
@@ -244,8 +245,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// send response
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "User logged in successfully",
+		"success": true,
 	})
 
 }

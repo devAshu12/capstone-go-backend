@@ -20,10 +20,10 @@ type User struct {
 	ID         string   `gorm:"type:uuid;primaryKey" json:"id"`
 	FirstName  string   `gorm:"type:string;not null" json:"first_name"`
 	SecondName string   `gorm:"type:string;not null" json:"second_name"`
-	Email      string   `gorm:"type:string;not null;unique" json:"email"`
-	Password   string   `gorm:"type:string;not null" json:"password"`
-	Role       RoleType `gorm:"type:string;not null" json:"role"`
-	Valid      bool     `gorm:"type:bool;default:true" json:"valid"`
+	Email      string   `gorm:"type:string;not null;unique" json:"-"`
+	Password   string   `gorm:"type:string;not null" json:"-"`
+	Role       RoleType `gorm:"type:string;not null" json:"-"`
+	Valid      bool     `gorm:"type:bool;default:true" json:"-"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {

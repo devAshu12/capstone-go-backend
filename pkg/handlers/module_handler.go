@@ -59,12 +59,12 @@ func CreateModule(w http.ResponseWriter, r *http.Request) {
 func GetModules(w http.ResponseWriter, r *http.Request) {
 	courseID := r.URL.Query().Get("course_id")
 	if courseID == "" {
-		appErr := types.NewAppError(http.StatusBadRequest, "Course_id is required", nil)
+		appErr := types.NewAppError(http.StatusBadRequest, "course_id is required", nil)
 		utils.RespondWithError(w, appErr)
 		return
 	}
 	var modules []models.Module
-	if err := db.DB.Where("course_id = ?", courseID).Find(&modules).Error; err != nil {
+	if err := db.DB.Preload("Videos").Where("course_id = ?", courseID).Find(&modules).Error; err != nil {
 		appErr := types.NewAppError(http.StatusInternalServerError, "Failed to get modules", err)
 		utils.RespondWithError(w, appErr)
 		return

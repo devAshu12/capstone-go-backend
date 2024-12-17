@@ -63,10 +63,13 @@ func CreateCourse(w http.ResponseWriter, r *http.Request) {
 
 func GetCourses(w http.ResponseWriter, r *http.Request) {
 	var courses []models.Course
-	if err := db.DB.Find(&courses).Error; err != nil {
+	if err := db.DB.Preload("Faculty").Find(&courses).Error; err != nil {
 		appErr := types.NewAppError(http.StatusInternalServerError, "Failed to get users", err)
 		utils.RespondWithError(w, appErr)
 		return
 	}
-	types.RespondWithJSON(w, http.StatusOK, courses)
+	types.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"courses": courses,
+		"success": true,
+	})
 }

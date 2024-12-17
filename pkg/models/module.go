@@ -13,8 +13,9 @@ type Module struct {
 	TotalQuizs       int    `gorm:"default:0" json:"total_quizs"`
 	TotalAssignments int    `gorm:"default:0" json:"total_assignments"`
 
-	CourseID string  `gorm:"type:uuid;index" json:"course_id"`  // Foreign key referencing Course
-	Videos   []Video `gorm:"foreignKey:ModuleID" json:"videos"` // Relationship to Videos
+	CourseID    string       `gorm:"type:uuid;index" json:"course_id"`       // Foreign key referencing Course
+	Videos      []Video      `gorm:"foreignKey:ModuleID" json:"videos"`      // Relationship to Videos
+	Assignments []Assignment `gorm:"foreignKey:ModuleID" json:"assignments"` // Relationship to Assignments
 }
 
 func (m *Module) BeforeCreate(tx *gorm.DB) (err error) {

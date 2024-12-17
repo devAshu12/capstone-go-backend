@@ -16,6 +16,7 @@ func ValidateRequest(req interface{}) error {
 func LoadConfig() {
 	validate = validator.New()
 	err := godotenv.Load()
+	InitCloudinary()
 
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
